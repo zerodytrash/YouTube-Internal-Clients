@@ -1,7 +1,4 @@
-from email import charset
-import mimetypes
-from os import listdir
-from urllib import response
+import os
 import json
 
 markdown = ""
@@ -10,7 +7,10 @@ markdown += "|-------------|----------------|-----------------|----------|\n"
 
 txt_output = ""
 
-files = listdir('results')
+if not os.path.exists('results'):
+    os.makedirs('results')
+
+files = os.listdir('responses')
 
 client_ids = []
 
@@ -26,7 +26,7 @@ for client_id in client_ids:
     client_files.sort(reverse=True) # highest version first 
 
     for client_file in client_files:
-        response_data_raw = open('results/' + client_file, 'r', encoding='utf-8').read()
+        response_data_raw = open('responses/' + client_file, 'r', encoding='utf-8').read()
         response_data = json.loads(response_data_raw)
 
         client_name = None
@@ -73,10 +73,10 @@ for client_id in client_ids:
 
         break
 
-f = open("working_clients.md", "w")
+f = open("results/working_clients.md", "w")
 f.write(markdown)
 f.close()
 
-f = open("working_clients.txt", "w")
+f = open("results/working_clients.txt", "w")
 f.write(txt_output)
 f.close()

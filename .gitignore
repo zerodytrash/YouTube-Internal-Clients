@@ -129,4 +129,4 @@ dmypy.json
 .pyre/
 
 .old/*
-results/*
+responses/*
