@@ -1,9 +1,47 @@
 import os
 import json
 
+from numpy import array
+
+def get_min_max_quality_label(formats):
+    formats = [f for f in formats if f.get("qualityLabel") is not None]
+    formats.sort(key=lambda x: x.get("width"))
+    min_format = formats[0]
+    max_format = formats[-1]
+
+    return min_format.get("qualityLabel") + " - " + max_format.get("qualityLabel")
+
+def get_unique_mime_str(formats):
+    mimes = []
+    for f in formats:
+        if f.get("mimeType") is not None:
+            mime_short = f.get("mimeType").split(";")[0]
+
+            if mime_short not in mimes:
+                mimes.append(mime_short)
+
+    mimes_str = ""
+    for m in mimes:
+        mimes_str += "`" + m + "` "
+
+    return mimes_str
+
+def get_structure_tree(data, depth = 0):
+    result = ""
+
+    for attribute in data:
+        if isinstance(data[attribute], dict):
+            result += ("│&nbsp;&nbsp;&nbsp;&nbsp;" * depth) + "├─`" + attribute + "`<br>"
+            result += get_structure_tree(data[attribute], depth + 1)
+        if isinstance(data[attribute], list):
+            result += ("│&nbsp;&nbsp;&nbsp;&nbsp;" * depth) + "├─`[" + attribute + "]` (" + str(len(data[attribute])) + ")<br>"
+
+    return result
+
+
 markdown = ""
-markdown += "| Client Name | Client Version | Quality Formats | Features |\n"
-markdown += "|-------------|----------------|-----------------|----------|\n"
+markdown += "|ID| Client Name | Client Version | Quality Formats | Features/Attributes |\n"
+markdown += "|--|-------------|----------------|-----------------|----------|\n"
 
 txt_output = ""
 
@@ -41,25 +79,36 @@ for client_id in client_ids:
         
         txt_output += client_name + ";" + client_version + "\n"
 
-        formatsStr = "<details><summary>Formats</summary>"
+        formats_combined = []
+
+        formatsStr = ""
 
         if response_data.get('streamingData'):
             formats = response_data.get('streamingData').get('formats')
-            if formats is not None and len(formats) > 0:
+            if formats is not None:
+                formatsStr = "<details><summary>Formats (" + str(len(formats)) + ")</summary>"
+                formats_combined += formats
+
                 for format in formats:
-                    formatsStr += str(format.get("itag")) + " - " + str(format.get("qualityLabel")) + " - " + str(format.get("fps")) + " FPS - " + str(format.get("mimeType")).split(';')[0] + "<br>"
+                    formatsStr += str(format.get("itag")) + " - " + str(format.get("qualityLabel")) + " - " + str(format.get("mimeType")).split(';')[0] + "<br>"
 
-        formatsStr += "</details>"
+                formatsStr += "</details>"
 
-        adaptiveFormatsStr= "<details><summary>Adaptive Formats</summary>"
+        adaptiveFormatsStr = ""
 
         if response_data.get('streamingData'):
             formats = response_data.get('streamingData').get('adaptiveFormats')
-            if formats is not None and len(formats) > 0:
-                for format in formats:
-                    adaptiveFormatsStr += str(format.get("itag")) + " - " + str(format.get("qualityLabel")) + " - " + str(format.get("fps")) + " FPS - " + str(format.get("mimeType")).split(';')[0] + "<br>"
+            if formats is not None:
+                adaptiveFormatsStr = "<details><summary>Adaptive Formats (" + str(len(formats)) + ")</summary>"
+                formats_combined += formats
 
-        adaptiveFormatsStr += "</details>"
+                for format in formats:
+                    adaptiveFormatsStr += str(format.get("itag")) + " - " + str(format.get("qualityLabel")) + " - " + str(format.get("mimeType")).split(';')[0] + "<br>"
+
+                adaptiveFormatsStr += "</details>"
+
+        formats_summary = "<b>" + get_min_max_quality_label(formats_combined) + "</b><br>"
+        formats_summary += get_unique_mime_str(formats_combined) + "<br><br>"
 
         extraInfo = ""
         if has_hls_format:
@@ -68,12 +117,26 @@ for client_id in client_ids:
         if has_mpeg_dash:
             extraInfo += "&bull; MPEG-DASH Support"
 
+        ignore_attributes = ["videoDetails", "playerConfig", "responseContext", "playabilityStatus", "streamingData", "playbackTracking", "trackingParams", "adPlacements", "playerAds", "adParams", "adBreakParams"]
 
-        markdown += client_name + "|" + client_version + "|" + formatsStr + adaptiveFormatsStr + "|" + extraInfo  + "|\n"
+        if extraInfo != "":
+            extraInfo += "<br><br>"
+
+        for attribute in response_data:
+            if attribute not in ignore_attributes:
+                extraInfo += "&bull; `" + attribute + "`<br>"
+
+        if extraInfo != "":
+            extraInfo += "<br>"
+
+        extraInfo += "<details><summary>Response Structure</summary>" + get_structure_tree(response_data) +"</details>"
+
+
+        markdown += str(client_id) + "|" + client_name + "|" + client_version + "|" + formats_summary + formatsStr + adaptiveFormatsStr + "|" + extraInfo  + "|\n"
 
         break
 
-f = open("results/working_clients.md", "w")
+f = open("results/working_clients.md", "w", encoding="utf-8")
 f.write(markdown)
 f.close()
 
