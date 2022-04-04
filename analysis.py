@@ -40,8 +40,8 @@ def get_structure_tree(data, depth = 0):
 
 
 markdown = ""
-markdown += "|ID| Client Name | Client Version | Quality Formats | Features/Attributes |\n"
-markdown += "|--|-------------|----------------|-----------------|----------|\n"
+markdown += "|Client Name | Client Version | Quality Formats | Features/Attributes |\n"
+markdown += "|-------------|----------------|-----------------|----------|\n"
 
 txt_output = ""
 
@@ -117,7 +117,7 @@ for client_id in client_ids:
         if has_mpeg_dash:
             extraInfo += "&bull; MPEG-DASH Support"
 
-        ignore_attributes = ["videoDetails", "playerConfig", "responseContext", "playabilityStatus", "streamingData", "playbackTracking", "trackingParams", "adPlacements", "playerAds", "adParams", "adBreakParams"]
+        ignore_attributes = ["videoDetails", "playerConfig", "responseContext", "playabilityStatus", "streamingData", "playbackTracking", "trackingParams", "adPlacements", "playerAds", "adParams", "adBreakParams", "onResponseReceivedEndpoints", "playerSettingsMenuData"]
 
         if extraInfo != "":
             extraInfo += "<br><br>"
@@ -132,7 +132,7 @@ for client_id in client_ids:
         extraInfo += "<details><summary>Response Structure</summary>" + get_structure_tree(response_data) +"</details>"
 
 
-        markdown += str(client_id) + "|" + client_name + "|" + client_version + "|" + formats_summary + formatsStr + adaptiveFormatsStr + "|" + extraInfo  + "|\n"
+        markdown += "|" + client_name + "<br>(" + str(client_id) + ")" + "|" + client_version + "|" + formats_summary + formatsStr + adaptiveFormatsStr + "|" + extraInfo  + "|\n"
 
         break
 
