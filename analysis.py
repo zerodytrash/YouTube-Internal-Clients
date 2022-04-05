@@ -1,8 +1,6 @@
 import os
 import json
 
-from numpy import array
-
 def get_min_max_quality_label(formats):
     formats = [f for f in formats if f.get("qualityLabel") is not None]
     formats.sort(key=lambda x: x.get("width"))
@@ -40,10 +38,13 @@ def get_structure_tree(data, depth = 0):
 
 
 markdown = ""
-markdown += "|Client Name | Client Version | Quality Formats | Features/Attributes |\n"
-markdown += "|-------------|----------------|-----------------|----------|\n"
+markdown += "| ID/ClientName/Version | Quality Formats | Features/Limitations/Attributes |\n"
+markdown += "|---------------------------|-----------------|----------|\n"
 
-txt_output = ""
+working_clients_output = ""
+working_versions_output = ""
+
+video_id = ""
 
 if not os.path.exists('results'):
     os.makedirs('results')
@@ -73,11 +74,22 @@ for client_id in client_ids:
         has_mpeg_dash = "dashManifest" in response_data_raw
 
         try:
-            client_name = response_data_raw.split('&c=')[1].split('&')[0]
-        except Exception as ex:
-            continue
+            client_name = response_data_raw.split('%26c%3D')[1].split('%26')[0]
+        except Exception:
+            try:
+                client_name = response_data_raw.split('&c=')[1].split('&')[0]
+            except Exception:
+                continue
+
+        try:
+            video_id = response_data_raw.split('&docid=')[1].split('&')[0]
+        except Exception:
+            print("missing doc id (video id)")   
         
-        txt_output += client_name + ";" + client_version + "\n"
+        working_clients_output += client_name + ";" + client_version + "\n"
+
+        if (client_version + "\n") not in working_versions_output:
+            working_versions_output += client_version + "\n"
 
         formats_combined = []
 
@@ -111,16 +123,28 @@ for client_id in client_ids:
         formats_summary += get_unique_mime_str(formats_combined) + "<br><br>"
 
         extraInfo = ""
+
+        if "music.youtube.com" in client_file:
+            extraInfo += "&bull; Music videos only<br>"
+
+        if "www.youtubekids.com" in client_file:
+            extraInfo += "&bull; \"For Kids\" content only<br>"
+
+
         if has_hls_format:
-            extraInfo += "&bull; HLS Support"
+            extraInfo += "&bull; HLS Support<br>"
 
         if has_mpeg_dash:
-            extraInfo += "&bull; MPEG-DASH Support"
+            extraInfo += "&bull; MPEG-DASH Support<br>"
+
+        if client_name == "TVHTML5_SIMPLY_EMBEDDED_PLAYER":
+            extraInfo += "&bull; No Age-restrictions<br>"
+
 
         ignore_attributes = ["videoDetails", "playerConfig", "responseContext", "playabilityStatus", "streamingData", "playbackTracking", "trackingParams", "adPlacements", "playerAds", "adParams", "adBreakParams", "onResponseReceivedEndpoints", "playerSettingsMenuData"]
 
         if extraInfo != "":
-            extraInfo += "<br><br>"
+            extraInfo += "<br>"
 
         for attribute in response_data:
             if attribute not in ignore_attributes:
@@ -129,17 +153,28 @@ for client_id in client_ids:
         if extraInfo != "":
             extraInfo += "<br>"
 
-        extraInfo += "<details><summary>Response Structure</summary>" + get_structure_tree(response_data) +"</details>"
+        extraInfo += "<details><summary>Show Response</summary>" + get_structure_tree(response_data) +"</details>"
 
 
-        markdown += "|" + client_name + "<br>(" + str(client_id) + ")" + "|" + client_version + "|" + formats_summary + formatsStr + adaptiveFormatsStr + "|" + extraInfo  + "|\n"
+        markdown += "|ID: *" + str(client_id) + "*<br>" + client_name + "<br>" + client_version + "|" + formats_summary + formatsStr + adaptiveFormatsStr + "|" + extraInfo  + "|\n"
 
         break
+
+readme_header = open("templates/readme_header.md", "r").read()
+readme_header = readme_header.replace("%videoId%", video_id)
 
 f = open("results/working_clients.md", "w", encoding="utf-8")
 f.write(markdown)
 f.close()
 
 f = open("results/working_clients.txt", "w")
-f.write(txt_output)
+f.write(working_clients_output)
+f.close()
+
+f = open("results/working_unique_versions.txt", "w")
+f.write(working_versions_output)
+f.close()
+
+f = open("readme.md", "w", encoding="utf-8")
+f.write(readme_header + markdown)
 f.close()

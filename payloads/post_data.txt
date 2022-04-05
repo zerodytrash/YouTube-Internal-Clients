@@ -1,41 +1,22 @@
 {
     "context": {
         "client": {
-            "hl": "de",
-            "gl": "DE",
+            "hl": "en",
+            "gl": "US",
             "clientName": %clientName%,
             "clientVersion": "%clientVersion%",
             "clientScreen": "WATCH",
-            "mainAppWebInfo": {
-                "graftUrl": "/watch?v=7t0SqerlBA0",
-                "pwaInstallabilityStatus": "PWA_INSTALLABILITY_STATUS_CAN_BE_INSTALLED",
-                "webDisplayMode": "WEB_DISPLAY_MODE_BROWSER",
-                "isWebNativeShareAvailable": true
-            },
             thirdParty: {
                 embedUrl: 'https://www.youtube.com/',
             }
         },
-        "user": {
-            "lockedSafetyMode": false
-        },
-        "request": {
-            "useSsl": true,
-            "internalExperimentFlags": [],
-            "consistencyTokenJars": []
-        }
     },
-    "videoId": "Zv11L-ZfrSg",
+    "videoId": "%videoId%",
     "playbackContext": {
         "contentPlaybackContext": {
-            "currentUrl": "/watch?v=7t0SqerlBA0",
-            "vis": 0,
-            "splay": false,
-            "autoCaptionsDefaultOn": false,
             "autonavState": "STATE_ON",
             "html5Preference": "HTML5_PREF_WANTS",
             "signatureTimestamp": 19075,
-            "referer": "https://www.youtube.com/results?search_query=test+age+restricted+video",
             "lactMilliseconds": "-1"
         }
     },
