@@ -42,7 +42,7 @@ markdown += "| ID/ClientName/Version | Quality Formats | Features/Limitations/At
 markdown += "|---------------------------|-----------------|----------|\n"
 
 working_clients_output = ""
-working_versions_output = ""
+working_versions = []
 
 video_id = ""
 
@@ -86,10 +86,10 @@ for client_id in client_ids:
         except Exception:
             print("missing doc id (video id)")   
         
-        working_clients_output += client_name + ";" + client_version + "\n"
+        working_clients_output += str(client_id) + ";" + client_name + ";" + client_version + "\n"
 
-        if (client_version + "\n") not in working_versions_output:
-            working_versions_output += client_version + "\n"
+        if client_version not in working_versions:
+            working_versions.append(client_version)
 
         formats_combined = []
 
@@ -172,7 +172,8 @@ f.write(working_clients_output)
 f.close()
 
 f = open("results/working_unique_versions.txt", "w")
-f.write(working_versions_output)
+for v in working_versions:
+    f.write(v + "\n")
 f.close()
 
 f = open("readme.md", "w", encoding="utf-8")
