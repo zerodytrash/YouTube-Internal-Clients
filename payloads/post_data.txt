@@ -5,11 +5,11 @@
             "gl": "US",
             "clientName": %clientName%,
             "clientVersion": "%clientVersion%",
-            "clientScreen": "WATCH",
-            thirdParty: {
-                embedUrl: 'https://www.youtube.com/',
-            }
+            "clientScreen": "WATCH"
         },
+        "thirdParty": {
+            "embedUrl": "https://www.youtube.com/"
+        }
     },
     "videoId": "%videoId%",
     "playbackContext": {
