@@ -5,7 +5,8 @@
             "gl": "US",
             "clientName": %clientName%,
             "clientVersion": "%clientVersion%",
-            "clientScreen": "WATCH"
+            "clientScreen": "WATCH",
+            "androidSdkVersion": 31
         },
         "thirdParty": {
             "embedUrl": "https://www.youtube.com/"

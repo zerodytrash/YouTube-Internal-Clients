@@ -44,7 +44,6 @@ markdown += "|---------------------------|-----------------|----------|\n"
 working_clients_output = ""
 working_versions = []
 
-video_id = ""
 
 if not os.path.exists('results'):
     os.makedirs('results')
@@ -64,6 +63,12 @@ for client_id in client_ids:
     client_files = [file for file in files if file.startswith(str(client_id) + '_')]
     client_files.sort(reverse=True) # highest version first 
 
+    versions = []
+    for file_name in client_files:
+        version = file_name.split("_")[1]
+        if version not in versions:
+            versions.append(version)
+
     for client_file in client_files:
         response_data_raw = open('responses/' + client_file, 'r', encoding='utf-8').read()
         response_data = json.loads(response_data_raw)
@@ -80,11 +85,6 @@ for client_id in client_ids:
                 client_name = response_data_raw.split('&c=')[1].split('&')[0]
             except Exception:
                 continue
-
-        try:
-            video_id = response_data_raw.split('&docid=')[1].split('&')[0]
-        except Exception:
-            print("missing doc id (video id)")   
         
         working_clients_output += str(client_id) + ";" + client_name + ";" + client_version + "\n"
 
@@ -140,6 +140,9 @@ for client_id in client_ids:
         if client_name == "TVHTML5_SIMPLY_EMBEDDED_PLAYER":
             extraInfo += "&bull; No Age-restrictions<br>"
 
+        if "android" in client_name.lower():
+            extraInfo += "&bull; Needs [`androidSdkVersion`](#params)<br>"
+
 
         ignore_attributes = ["videoDetails", "playerConfig", "responseContext", "playabilityStatus", "streamingData", "playbackTracking", "trackingParams", "adPlacements", "playerAds", "adParams", "adBreakParams", "onResponseReceivedEndpoints", "playerSettingsMenuData"]
 
@@ -155,13 +158,17 @@ for client_id in client_ids:
 
         extraInfo += "<details><summary>Show Response</summary>" + get_structure_tree(response_data) +"</details>"
 
+        other_versions = ""
+        if len(versions) > 1:
+            other_versions = "<br><br><details><summary>All Versions</summary>" + "<br>".join(versions) +"</details>"
 
-        markdown += "|ID: *" + str(client_id) + "*<br>" + client_name + "<br>" + client_version + "|" + formats_summary + formatsStr + adaptiveFormatsStr + "|" + extraInfo  + "|\n"
+
+        markdown += "|ID: *" + str(client_id) + "*<br><b>" + client_name + "</b><br>" + client_version + other_versions + "|" + formats_summary + formatsStr + adaptiveFormatsStr + "|" + extraInfo  + "|\n"
 
         break
 
-readme_header = open("templates/readme_header.md", "r").read()
-readme_header = readme_header.replace("%videoId%", video_id)
+readme_template = open("templates/readme_template.md", "r").read()
+readme_template = readme_template.replace("%table%", markdown)
 
 f = open("results/working_clients.md", "w", encoding="utf-8")
 f.write(markdown)
@@ -177,5 +184,5 @@ for v in working_versions:
 f.close()
 
 f = open("readme.md", "w", encoding="utf-8")
-f.write(readme_header + markdown)
+f.write(readme_template)
 f.close()

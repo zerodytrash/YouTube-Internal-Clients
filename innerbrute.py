@@ -1,5 +1,6 @@
 import requests
 import os
+import time
 
 client_versions = open("payloads/client_versions.txt", "r").readlines()
 data_template =  open("payloads/post_data.txt", "r").read()
@@ -54,7 +55,9 @@ innertube_hosts = [
 if not os.path.exists('responses'):
     os.makedirs('responses')
 
-for client_name_id in range(1, 100):
+requests_failed = 0
+
+for client_name_id in range(1, 120):
     for client_version in client_versions:
         client_version = client_version.replace("\n", "").replace("\r", "")
         if client_version == "":
@@ -64,11 +67,13 @@ for client_name_id in range(1, 100):
 
             try_id = str(client_name_id) + "_" + client_version + "_" + str(len(innertube_hosts) - i) + "_" + host["domain"] + "_" + host["key"]
 
-            print("Try ClientId: " + str(client_name_id) + " ClientVersion: " + str(client_version) + " @ " + host["domain"])
+            print("Try ClientId: " + str(client_name_id) + " ClientVersion: " + str(client_version) + " @ " + host["domain"] + " Failed Requests: " + str(requests_failed))
 
             data = data_template.replace("%videoId%", host["video_id"]).replace('%clientName%', str(client_name_id)).replace('%clientVersion%', client_version)
 
-            for i in range(0, 2):
+            headers = host["headers"].copy()
+
+            for i in range(0, 4):
                 try:
                     response = requests.post("https://" + host["domain"] + "/youtubei/v1/player?key=" + host["key"], data=data, headers=host["headers"], timeout=5)
 
@@ -81,4 +86,7 @@ for client_name_id in range(1, 100):
 
                     break
                 except Exception as ex:
+                    if i == 3:
+                        requests_failed += 1
+                    time.sleep(0.5)
                     print(ex)
