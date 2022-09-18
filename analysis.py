@@ -141,7 +141,7 @@ for client_id in client_ids:
             extraInfo += "&bull; No Age-restrictions<br>"
 
         if "android" in client_name.lower():
-            extraInfo += "&bull; Needs [`androidSdkVersion`](#params)<br>"
+            extraInfo += "&bull; Might require [`androidSdkVersion`](#params)<br>"
 
 
         ignore_attributes = ["videoDetails", "playerConfig", "responseContext", "playabilityStatus", "streamingData", "playbackTracking", "trackingParams", "adPlacements", "playerAds", "adParams", "adBreakParams", "onResponseReceivedEndpoints", "playerSettingsMenuData"]
